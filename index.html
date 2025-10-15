@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF--8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Ujian Ekonomi OSN</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="login-container" class="container">
+        <div class="card">
+            <h2>Login Peserta Ujian</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Mulai Ujian</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="exam-container" class="container hidden">
+        <div class="exam-header">
+            <h1>Ujian Penalaran UMUM </h1>`
+            <div id="timer">Sisa Waktu: <strong>30:00</strong></div>
+        </div>
+        <div class="exam-body">
+            <div id="question-area" class="card">
+                <div id="question-container">
+                    <p id="question-number">Soal Nomor 1</p>
+                    <p id="question-text">Pertanyaan akan muncul di sini...</p>
+                    <div id="options-container">
+                        </div>
+                </div>
+                <div class="question-controls">
+                    <button id="prev-btn" class="btn btn-secondary">Sebelumnya</button>
+                    <button id="doubtful-btn" class="btn btn-warning">Ragu-ragu</button>
+                    <button id="next-btn" class="btn">Selanjutnya</button>
+                </div>
+            </div>
+            <div id="nav-area" class="card">
+                <h3>Navigasi Soal</h3>
+                <div id="question-nav">
+                    </div>
+                <button id="submit-btn" class="btn btn-danger">Kirim Jawaban</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-container" class="container hidden">
+        <div class="card">
+            <h2>Hasil Ujian</h2>
+            <p>Ujian telah selesai!</p>
+            <p id="score-text">Skor Anda:</p>
+            <h1 id="score">0</h1>
+            <button id="restart-btn" class="btn">Coba Lagi</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    
+</body>
+</html>
