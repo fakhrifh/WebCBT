@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- Variabel & Konstanta ---
+    let username = "";
     const totalQuestions = questions.length;
     let currentQuestionIndex = 0;
     let userAnswers = new Array(totalQuestions).fill(null);
@@ -162,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginContainer = document.getElementById('login-container');
     const examContainer = document.getElementById('exam-container');
     const resultContainer = document.getElementById('result-container');
-    
+    const reviewContainer = document.getElementById('review-container');
+
     // --- Event Listeners ---
     document.getElementById('login-form').addEventListener('submit', startExam);
     document.getElementById('next-btn').addEventListener('click', nextQuestion);
@@ -178,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         examContainer.classList.remove('hidden');
         buildQuestionNav();
         loadQuestion(currentQuestionIndex);
-        startTimer(30 * 60); // Timer 30 Menit
+        startTimer(45 * 60); // 45 Menit
     }
 
     function buildQuestionNav() {
@@ -194,17 +196,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateNavStatus();
     }
-    
+
     function loadQuestion(index) {
         currentQuestionIndex = index;
         const question = questions[index];
-        
+        const contextEl = document.getElementById('question-context');
+
+        if (question.context) {
+            contextEl.textContent = question.context;
+            contextEl.style.display = 'block';
+        } else {
+            contextEl.style.display = 'none';
+        }
+
         document.getElementById('question-number').textContent = `Soal Nomor ${index + 1}`;
         document.getElementById('question-text').textContent = question.question;
 
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.innerHTML = '';
-        question.options.forEach((option, i) => {
+        question.options.forEach((option) => {
             const label = document.createElement('label');
             label.className = 'option';
             const radio = document.createElement('input');
@@ -215,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             radio.addEventListener('change', () => selectAnswer(index, option));
             
             label.appendChild(radio);
-            label.appendChild(document.createTextNode(` ${option}`)); // spasi untuk jarak
+            label.appendChild(document.createTextNode(` ${option}`));
             optionsContainer.appendChild(label);
         });
 
@@ -227,69 +237,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function selectAnswer(index, answer) {
         userAnswers[index] = answer;
         if (doubtfulQuestions.has(index)) {
-            doubtfulQuestions.delete(index); // Otomatis hapus status ragu-ragu jika jawaban baru dipilih
+            doubtfulQuestions.delete(index);
         }
         updateNavStatus();
     }
-
-    function goToQuestion(index) {
-        loadQuestion(index);
-    }
     
-    function nextQuestion() {
-        if (currentQuestionIndex < totalQuestions - 1) {
-            loadQuestion(currentQuestionIndex + 1);
-        }
-    }
-
-    function prevQuestion() {
-        if (currentQuestionIndex > 0) {
-            loadQuestion(currentQuestionIndex - 1);
-        }
-    }
-
+    function goToQuestion(index) { loadQuestion(index); }
+    function nextQuestion() { if (currentQuestionIndex < totalQuestions - 1) loadQuestion(currentQuestionIndex + 1); }
+    function prevQuestion() { if (currentQuestionIndex > 0) loadQuestion(currentQuestionIndex - 1); }
     function toggleDoubtful() {
-        const btn = document.getElementById('doubtful-btn');
         if (doubtfulQuestions.has(currentQuestionIndex)) {
             doubtfulQuestions.delete(currentQuestionIndex);
-            btn.classList.remove('active');
-            btn.textContent = "Ragu-ragu";
         } else {
             doubtfulQuestions.add(currentQuestionIndex);
-            btn.classList.add('active');
-            btn.textContent = "Batal Ragu";
         }
         updateNavStatus();
     }
 
     function updateNavStatus() {
-        const navButtons = document.querySelectorAll('.nav-btn');
-        navButtons.forEach((btn, i) => {
-            btn.classList.remove('current', 'answered', 'doubtful');
-            if (i === currentQuestionIndex) {
-                btn.classList.add('current');
-            }
-            if (userAnswers[i] !== null) {
-                btn.classList.add('answered');
-            }
+        document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+            btn.className = 'nav-btn'; // Reset
+            if (i === currentQuestionIndex) btn.classList.add('current');
+            if (userAnswers[i] !== null) btn.classList.add('answered');
             if (doubtfulQuestions.has(i)) {
-                // Hapus kelas answered jika ragu-ragu untuk prioritas warna kuning
-                btn.classList.remove('answered'); 
+                btn.classList.remove('answered');
                 btn.classList.add('doubtful');
             }
         });
-        
-        // Update status tombol ragu-ragu
-        const doubtfulBtn = document.getElementById('doubtful-btn');
-        if (doubtfulQuestions.has(currentQuestionIndex)) {
-            doubtfulBtn.classList.add('active');
-            doubtfulBtn.textContent = "Batal Ragu";
-        } else {
-            doubtfulBtn.classList.remove('active');
-            doubtfulBtn.textContent = "Ragu-ragu";
-        }
     }
-    
+
     function startTimer(duration) {
         let timer = duration;
         const timerEl = document.getElementById('timer').querySelector('strong');
@@ -301,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (--timer < 0) {
                 clearInterval(timerInterval);
                 alert("Waktu habis!");
-                submitExam(true); // Kirim paksa jika waktu habis
+                submitExam(true);
             }
         }, 1000);
     }
@@ -309,13 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateScore() {
         let correctAnswers = 0;
         questions.forEach((q, i) => {
-            if (q.answer === userAnswers[i]) {
-                correctAnswers++;
-            }
+            if (q.answer === userAnswers[i]) correctAnswers++;
         });
-        // Skor dihitung per soal benar. Misal: 20 soal, 1 benar = skor 5. (1/20 * 100)
-        const score = (correctAnswers / totalQuestions) * 100;
-        return score.toFixed(0); // Dibulatkan tanpa desimal
+        return ((correctAnswers / totalQuestions) * 100).toFixed(0);
     }
 
     function submitExam(force = false) {
@@ -323,25 +295,64 @@ document.addEventListener('DOMContentLoaded', () => {
             showResults();
             return;
         }
-
         const unanswered = userAnswers.filter(a => a === null).length;
-        let confirmation = true;
-        if (unanswered > 0) {
-             confirmation = confirm(`Anda belum menjawab ${unanswered} soal. Apakah Anda yakin ingin menyelesaikan ujian?`);
-        } else {
-             confirmation = confirm("Apakah Anda yakin ingin menyelesaikan ujian?");
-        }
-
-        if (confirmation) {
-            showResults();
-        }
+        let confirmation = unanswered > 0
+            ? confirm(`Anda belum menjawab ${unanswered} soal. Yakin ingin menyelesaikan ujian?`)
+            : confirm("Apakah Anda yakin ingin menyelesaikan ujian?");
+        
+        if (confirmation) showResults();
     }
 
     function showResults() {
         clearInterval(timerInterval);
         const finalScore = calculateScore();
+        document.getElementById('result-greeting').textContent = `Selamat, ${username}!`;
         document.getElementById('score').textContent = finalScore;
         examContainer.classList.add('hidden');
         resultContainer.classList.remove('hidden');
+    }
+
+    function showReview() {
+        resultContainer.classList.add('hidden');
+        reviewContainer.classList.remove('hidden');
+        generateReview();
+    }
+
+    function generateReview() {
+        const reviewContent = document.getElementById('review-content');
+        reviewContent.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+            const isCorrect = userAnswer === q.answer;
+
+            const item = document.createElement('div');
+            item.className = 'review-item';
+
+            let reviewHTML = `
+                <p class="review-question"><strong>${index + 1}. ${q.question}</strong></p>
+                <ul class="review-answer">`;
+
+            q.options.forEach(option => {
+                let className = '';
+                if (option === q.answer) {
+                    className = 'correct'; // Tandai jawaban yang benar
+                } else if (option === userAnswer && !isCorrect) {
+                    className = 'incorrect'; // Tandai jawaban pengguna yang salah
+                }
+                reviewHTML += `<li class="${className}">${option}</li>`;
+            });
+
+            reviewHTML += `</ul>
+                <div class="review-explanation">
+                    <p>Jawaban Anda: <strong>${userAnswer || 'Tidak Dijawab'}</strong> ${isCorrect ? ' (Benar)' : ' (Salah)'}</p>
+                    <p>Jawaban Benar: <strong>${q.answer}</strong></p>
+                    <hr>
+                    <p><strong>Pembahasan:</strong> ${q.explanation}</p>
+                </div>`;
+            
+            item.innerHTML = reviewHTML;
+            reviewContent.appendChild(item);
+        });
     }
 });
