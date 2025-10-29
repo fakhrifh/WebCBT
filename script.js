@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // const GOOGLE_SCRIPT_URL = ... (DIHAPUS SESUAI PERMINTAAN)
     const EXAM_PASSWORD = 'cek123';
     const EXAM_DURATION_MINUTES = 90;
+    const GOOGLE_SCRIPT_URL = 'MASUKKAN_URL_WEB_APP_ANDA_DI_SINI';
 
     // --- KUMPULAN TEKS BACAAN (KONTEKS) ---
     // Teks ini akan digunakan berulang kali untuk soal-soal terkait
@@ -650,4 +651,46 @@ Jadi, jawaban yang tepat adalah pilihan C.
 
     // --- Inisialisasi ---
     showPage('login');
+
+    // Salin dan ganti fungsi ini di script.js Anda
+async function sendDataToGoogleSheet(score) {
+    // Pastikan pengecekan ini sesuai dengan placeholder Anda
+    if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwhO3n7jTBYzTpRKm9gYag-O0mjt34DuRTWkoKzJO2Jr3j-vfaav8jjH2O7uyosZi_l/exec') {
+        console.warn("URL Google Script belum diatur. Data tidak dikirim.");
+        // Anda bisa tambahkan alert di sini jika mau
+        // alert("Koneksi ke server skor gagal. URL belum diatur.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('Nama', username);
+    formData.append('Skor', score);
+    
+    // Tampilkan loading spinner atau pesan "Mengirim..."
+    const submitButton = document.getElementById('submit-btn');
+    if (submitButton) submitButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Mengirim...';
+    if (submitButton) submitButton.disabled = true;
+
+
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors' // Penting jika script Anda tidak menangani preflight CORS
+        });
+        console.log("Data berhasil dikirim ke Google Sheet.");
+    } catch (error) {
+        console.error('Gagal mengirim data:', error);
+        alert("Terjadi kesalahan saat mengirim skor Anda. Silakan coba lagi.");
+    } finally {
+        // Kembalikan tombol submit ke normal
+        if (submitButton) submitButton.innerHTML = '<i class="bi bi-check2-circle"></i> Selesaikan Ujian';
+        if (submitButton) submitButton.disabled = false;
+        
+        // Tampilkan halaman hasil (baris ini sudah ada di fungsi submitExam Anda)
+        // document.getElementById('result-greeting').textContent = `Selamat, ${username}!`;
+        // document.getElementById('score').textContent = score;
+        // showPage('result');
+    }
+}
 });
